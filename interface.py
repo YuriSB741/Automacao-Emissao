@@ -15,7 +15,7 @@ class Interface_App:
             "Divorciado", "Outros", 
             "Sep Consensualmente", 
             "Sep Judicialmente", 
-            "Separado", 
+            "Separado",
             "Solteiro", 
             "União Estável", 
             "Viúvo"
