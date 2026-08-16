@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
-from verificacao import emitir_estadual
+from verificacao import Emissao
 
 class Interface_App:
     def __init__(self, janela, janela_estadual):
@@ -108,7 +108,7 @@ class Interface_App:
             emitir_frame = tk.Frame(self.janela_estadual)
             emitir_frame.grid(row=12, column=1, sticky="w")
 
-            botao_emitir_estadual = tk.Button(emitir_frame, text="Emitir Documento", font=("Verdana", 11), borderwidth=3, command=lambda: emitir_estadual(self, self.janela_estadual))
+            botao_emitir_estadual = tk.Button(emitir_frame, text="Emitir Documento", font=("Verdana", 11), borderwidth=3, command=lambda: Emissao.emitir_estadual(self, self, self.janela_estadual))
             botao_emitir_estadual.pack(padx=20)
 
     def federal_info(self):
