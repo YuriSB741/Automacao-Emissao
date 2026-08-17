@@ -12,8 +12,9 @@ class Interface_App:
         self.estados = [
             "Casado", 
             "Companheiro", 
-            "Solteiro", "Desquitado", 
-            "Divorciado", "Outros", 
+            "Desquitado", 
+            "Divorciado", 
+            "Outros", 
             "Sep Consensualmente", 
             "Sep Judicialmente", 
             "Separado",
@@ -66,6 +67,7 @@ class Interface_App:
 
             self.sexo_box = ttk.Combobox(self.janela_estadual, width=32, values=self.generos ,state="readonly")
             self.sexo_box.grid(row=1, column=1, sticky="e")
+            self.sexo_box.set(self.generos[0])
 
             self.cpf_entry = tk.Entry(self.janela_estadual, width=35)
             self.cpf_entry.grid(row=2, column=1, sticky="e")
@@ -84,6 +86,7 @@ class Interface_App:
 
             self.estadocivil_entry = ttk.Combobox(self.janela_estadual, width=32, values=self.estados, state="readonly")
             self.estadocivil_entry.grid(row=7, column=1, sticky="e")
+            self.estadocivil_entry.set(self.estados[8])
 
             self.endereco_entry = tk.Entry(self.janela_estadual, width=35)
             self.endereco_entry.grid(row=9, column=1, sticky="e")

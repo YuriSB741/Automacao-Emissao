@@ -9,11 +9,7 @@ class Emissao:
     def emitir_estadual(self, iapp, main_window):
         self.nome = iapp.nome_entry.get().upper()
         self.sexo = iapp.sexo_box.get()
-        try:
-            self.cpf = int(iapp.cpf_entry.get())
-        except ValueError:
-            messagebox.showerror("Entrada inválida", "Digite apenas números", parent=main_window)
-            return
+        self.cpf = iapp.cpf_entry.get()
         self.mae = iapp.mae_entry.get().upper()
         self.pai = iapp.pai_entry.get().upper()
         self.nascimento = iapp.nasc_entry.get()
@@ -21,13 +17,13 @@ class Emissao:
         self.estadocivil = iapp.estadocivil_entry.get()
         self.rg = iapp.rg_entry.get()
         self.orgao_expedidor = iapp.orgao_entry.get().upper()
-        self.uf = iapp.uf_entry.get()
+        self.uf = iapp.uf_entry.get().upper()
         self.endereco = iapp.endereco_entry.get().upper()
 
         campos = {
             "Nome": self.nome,
             "Sexo": self.sexo,
-            "CPF": str(self.cpf),
+            "CPF": self.cpf,
             "Mãe": self.mae,
             "Pai": self.pai,
             "Nascimento": self.nascimento, 
@@ -72,6 +68,23 @@ class Emissao:
         driver.find_element(By.XPATH, "/html/body/div[1]/form/div[8]/input").send_keys(self.mae)
         # Escreve o nome do pai
         driver.find_element(By.XPATH, "/html/body/div[1]/form/div[9]/input").send_keys(self.pai)
-
-        
-            
+        # Escreve a data de nascimento
+        driver.find_element(By.XPATH, "/html/body/div[1]/form/div[10]/input").send_keys(self.nascimento)
+        # Escolhe a nacionalidade
+        nacionalidade_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/form/div[11]/select")))
+        select_nac = Select(nacionalidade_element)
+        select_nac.select_by_visible_text(self.nacionalidade)
+        # Escolhe o estado civil
+        estadocivil_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "estadoCivil")))
+        select_est = Select(estadocivil_element)
+        select_est.select_by_visible_text(self.estadocivil)
+        # Escreve o RG
+        driver.find_element(By.ID, "rg").send_keys(self.rg)
+        # Escreve o órgão expedidor
+        driver.find_element(By.ID, "orgaoExpedidor").send_keys(self.orgao_expedidor)
+        # Escolhe o UF
+        uf_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/form/div[13]/select")))
+        select_uf = Select(uf_element)
+        select_uf.select_by_visible_text(self.uf)
+        # Escreve o endereço
+        driver.find_element(By.ID, "endereco").send_keys(self.endereco)
