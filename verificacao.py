@@ -1,7 +1,9 @@
+import os
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
 import tkinter as tk
 from tkinter import messagebox
 
@@ -40,8 +42,21 @@ class Emissao:
         if faltando:
             messagebox.showerror("Campos Obrigatórios", f"Preencha os campos faltantes: {', '.join(faltando)}", parent=main_window)
             return
+
+        download_dir = os.path.join(os.getcwd(), "Downloads")
+        os.makedirs(download_dir, exist_ok=True)
+
+        chrome_options = Options()
+        prefs = {
+            "download.default_directory": download_dir,
+            "download.prompt_for_download": False,
+            "download.directory_upgrade": True,
+            "plugins.always_open_pdf_externally": True,
+            "safebrowsing.enabled": True
+        }
+        chrome_options.add_experimental_option("prefs", prefs)
         
-        driver = webdriver.Chrome()
+        driver = webdriver.Chrome(options=chrome_options)
         driver.get("https://www.tjrs.jus.br/novo/processos-e-servicos/servicos-processuais/emissao-de-antecedentes-e-certidoes/")
 
         iframe = WebDriverWait(driver, 10).until(
@@ -88,3 +103,6 @@ class Emissao:
         select_uf.select_by_visible_text(self.uf)
         # Escreve o endereço
         driver.find_element(By.ID, "endereco").send_keys(self.endereco)
+        # Apertar em emissão
+        driver.find_element(By.XPATH, "/html/body/div[1]/form/div[15]/input").click()
+        
