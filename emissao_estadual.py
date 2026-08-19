@@ -6,23 +6,14 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 import tkinter as tk
 from tkinter import messagebox
+from tkinter import filedialog
 
 class Emissao:
-    def emitir_estadual(self, iapp, main_window):
-        self.nome = iapp.nome_entry.get().upper()
-        self.sexo = iapp.sexo_box.get()
-        self.cpf = iapp.cpf_entry.get()
-        self.mae = iapp.mae_entry.get().upper()
-        self.pai = iapp.pai_entry.get().upper()
-        self.nascimento = iapp.nasc_entry.get()
-        self.nacionalidade = iapp.nacionalidade_entry.get().capitalize()
-        self.estadocivil = iapp.estadocivil_entry.get()
-        self.rg = iapp.rg_entry.get()
-        self.orgao_expedidor = iapp.orgao_entry.get().upper()
-        self.uf = iapp.uf_entry.get().upper()
-        self.endereco = iapp.endereco_entry.get().upper()
+    def selecionar_pasta(self):
+       self.caminho = filedialog.askdirectory(title="Seleciona uma pasta", parent=self.main_window)
 
-        campos = {
+    def verificacao_campos(self):
+        self.campos = {
             "Nome": self.nome,
             "Sexo": self.sexo,
             "CPF": self.cpf,
@@ -36,14 +27,31 @@ class Emissao:
             "UF" : self.uf,
             "Endereço": self.endereco
         }
-
-        faltando = [campo for campo, valor in campos.items() if not valor.strip()]
-
-        if faltando:
-            messagebox.showerror("Campos Obrigatórios", f"Preencha os campos faltantes: {', '.join(faltando)}", parent=main_window)
+        self.faltando = [campo for campo, valor in self.campos.items() if not valor.strip()]
+        if self.faltando:
+            messagebox.showerror("Campos Obrigatórios", f"Preencha os campos faltantes: {', '.join(self.faltando)}", parent=self.main_window)
             return
+        self.selecionar_pasta()
 
-        download_dir = os.path.join(os.getcwd(), "Downloads")
+    def emitir_estadual(self, iapp, main_window):
+        self.main_window = main_window
+
+        self.nome = iapp.nome_entry.get().upper()
+        self.sexo = iapp.sexo_box.get()
+        self.cpf = iapp.cpf_entry.get()
+        self.mae = iapp.mae_entry.get().upper()
+        self.pai = iapp.pai_entry.get().upper()
+        self.nascimento = iapp.nasc_entry.get()
+        self.nacionalidade = iapp.nacionalidade_entry.get().capitalize()
+        self.estadocivil = iapp.estadocivil_entry.get()
+        self.rg = iapp.rg_entry.get()
+        self.orgao_expedidor = iapp.orgao_entry.get().upper()
+        self.uf = iapp.uf_entry.get().upper()
+        self.endereco = iapp.endereco_entry.get().upper()
+        
+        self.verificacao_campos()
+
+        download_dir = self.caminho
         os.makedirs(download_dir, exist_ok=True)
 
         chrome_options = Options()
