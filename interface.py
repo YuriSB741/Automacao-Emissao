@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
-from verificacao import Emissao
+from emissao_estadual import Emissao
 
 class Interface_App:
     def __init__(self, janela, janela_estadual):
@@ -27,8 +27,16 @@ class Interface_App:
         self.janela_estadual = janela_estadual
         self.janela_federal = None
         self.janela.title("Emissor de Certidões")
-        self.janela.geometry("300x150")
+        self.janela.geometry("300x200")
         self.janela.resizable(False, False)
+
+    def centralizar_janela(self):
+        self.janela.update_idletasks()  
+        largura = janela.winfo_width()
+        altura = janela.winfo_height()
+        x = (janela.winfo_screenwidth() // 2) - (largura // 2)
+        y = (janela.winfo_screenheight() // 2) - (altura // 2)
+        janela.geometry(f"+{x}+{y}")
 
     def estadual_info(self):
         if self.janela_estadual is None or not self.janela_estadual.winfo_exists():
@@ -131,16 +139,10 @@ janela = tk.Tk()
 janela_estadual = None
 app = Interface_App(janela, janela_estadual)
 
-tela_largura = janela.winfo_screenwidth()
-tela_altura = janela.winfo_screenheight() 
-
-pos_x = int((tela_largura / 2) - (300 / 2))
-pos_y = int((tela_altura / 2) - (200 / 2))
-
-janela.geometry(f"{300}x{200}+{pos_x}+{pos_y}")
-
 certidao_estadual_botao = tk.Button(janela, text="Estadual", font=("Verdana", 11), borderwidth=3, command=app.estadual_info)
 certidao_estadual_botao.pack(pady=30)
 
 certidao_federal_botao = tk.Button(janela, text="Federal", font=("Verdana", 11), borderwidth=3, command=app.federal_info)
 certidao_federal_botao.pack(pady=20)
+
+app.centralizar_janela()

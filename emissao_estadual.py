@@ -1,4 +1,5 @@
 import os
+import time
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -51,6 +52,9 @@ class Emissao:
         
         self.verificacao_campos()
 
+        if not self.caminho:
+            return
+
         download_dir = self.caminho
         os.makedirs(download_dir, exist_ok=True)
 
@@ -78,39 +82,42 @@ class Emissao:
         select = Select(select_element)
         select.select_by_value("3")
 
-        # Escreve o nome no site
         driver.find_element(By.XPATH, "/html/body/div[1]/form/div[4]/input").send_keys(self.nome)
-        # Escolhe o sexo
+        
         if self.sexo == "Feminino":    
             select_entry_sexo = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/form/div[5]/select")))
             select = Select(select_entry_sexo)
             select.select_by_value("F")
-        # Escreve o cpf no site
+       
         driver.find_element(By.XPATH, "/html/body/div[1]/form/div[6]/input").send_keys(self.cpf)
-        # Escreve o nome da mãe
+        
         driver.find_element(By.XPATH, "/html/body/div[1]/form/div[8]/input").send_keys(self.mae)
-        # Escreve o nome do pai
+        
         driver.find_element(By.XPATH, "/html/body/div[1]/form/div[9]/input").send_keys(self.pai)
-        # Escreve a data de nascimento
+        
         driver.find_element(By.XPATH, "/html/body/div[1]/form/div[10]/input").send_keys(self.nascimento)
-        # Escolhe a nacionalidade
+        
         nacionalidade_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/form/div[11]/select")))
         select_nac = Select(nacionalidade_element)
         select_nac.select_by_visible_text(self.nacionalidade)
-        # Escolhe o estado civil
+        
         estadocivil_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "estadoCivil")))
         select_est = Select(estadocivil_element)
         select_est.select_by_visible_text(self.estadocivil)
-        # Escreve o RG
+        
         driver.find_element(By.ID, "rg").send_keys(self.rg)
-        # Escreve o órgão expedidor
+        
         driver.find_element(By.ID, "orgaoExpedidor").send_keys(self.orgao_expedidor)
-        # Escolhe o UF
+        
         uf_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/form/div[13]/select")))
         select_uf = Select(uf_element)
         select_uf.select_by_visible_text(self.uf)
-        # Escreve o endereço
+        
         driver.find_element(By.ID, "endereco").send_keys(self.endereco)
-        # Apertar em emissão
+        
         driver.find_element(By.XPATH, "/html/body/div[1]/form/div[15]/input").click()
+
+        time.sleep(2)
+        driver.quit()
+
         
