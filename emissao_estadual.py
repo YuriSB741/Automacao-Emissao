@@ -1,4 +1,5 @@
 import os
+import json
 import time
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select, WebDriverWait
@@ -10,6 +11,48 @@ from tkinter import messagebox
 from tkinter import filedialog
 
 class Emissao:
+    ARQUIVO_JSON = os.path.join(os.path.dirname(__file__), "historico_certidoes.json")
+
+    def carregar_historico(self):
+        if os.path.exists(self.ARQUIVO_JSON):
+            with open(self.ARQUIVO_JSON, "r", encoding="utf-8") as f:
+                try:
+                    dados = json.load(f)
+                except json.JSONDecodeError:
+                    return []
+
+                if isinstance(dados, dict):
+                    return [dados]
+                if isinstance(dados, list):
+                    return dados
+                return []
+        return []
+
+    def salvar_json(self):
+        dados = {
+            "Nome": self.nome,
+            "Sexo": self.sexo,
+            "CPF": self.cpf,
+            "Mãe": self.mae,
+            "Pai": self.pai,
+            "Nascimento": self.nascimento, 
+            "Nacionalidade": self.nacionalidade,
+            "Estado Civil": self.estadocivil,
+            "RG" : self.rg,
+            "Órgão Expedidor" : self.orgao_expedidor,
+            "UF" : self.uf,
+            "Endereço": self.endereco
+        }
+        with open(self.ARQUIVO_JSON, "w", encoding="utf-8") as f:
+            json.dump(dados, f, ensure_ascii=False, indent=4)
+
+    def buscar_pessoa(self):
+        historico = self.carregar_historico()
+        for pessoa in historico:
+            if pessoa.get("cpf") == self.cpf:
+                return pessoa
+        return None
+
     def selecionar_pasta(self):
        self.caminho = filedialog.askdirectory(title="Seleciona uma pasta", parent=self.main_window)
 
@@ -32,6 +75,7 @@ class Emissao:
         if self.faltando:
             messagebox.showerror("Campos Obrigatórios", f"Preencha os campos faltantes: {', '.join(self.faltando)}", parent=self.main_window)
             return
+        self.salvar_json()
         self.selecionar_pasta()
 
     def emitir_estadual(self, iapp, main_window):
@@ -119,5 +163,3 @@ class Emissao:
 
         time.sleep(2)
         driver.quit()
-
-        

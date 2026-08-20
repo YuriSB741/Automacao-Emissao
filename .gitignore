@@ -9,3 +9,7 @@ venv/
 # Configurações do editor e senhas
 .vscode/
 .env
+
+# dados pessoais/históricos - não versionar
+historico_certidoes.json
+

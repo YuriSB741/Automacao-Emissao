@@ -30,6 +30,51 @@ class Interface_App:
         self.janela.geometry("300x200")
         self.janela.resizable(False, False)
 
+    def atualizar_lista_historico(self):
+        historico = self.emissao.carregar_historico()
+        self.mapa_historico = {f"{p['Nome']} - {p['CPF']}": p for p in historico}
+        self.historico_box["values"] = list(self.mapa_historico.keys())
+
+    def carregar_pessoa_selecionada(self, event=None):
+        chave = self.historico_box.get()
+        dados = self.mapa_historico.get(chave)
+        if not dados:
+            return
+
+        self.nome_entry.delete(0, tk.END)
+        self.nome_entry.insert(0, dados["Nome"])
+
+        self.sexo_box.set(dados["Sexo"])
+
+        self.cpf_entry.delete(0, tk.END)
+        self.cpf_entry.insert(0, dados["CPF"])
+
+        self.mae_entry.delete(0, tk.END)
+        self.mae_entry.insert(0, dados["Mãe"])
+
+        self.pai_entry.delete(0, tk.END)
+        self.pai_entry.insert(0, dados["Pai"])
+
+        self.nasc_entry.delete(0, tk.END)
+        self.nasc_entry.insert(0, dados["Nascimento"])
+
+        self.nacionalidade_entry.delete(0, tk.END)
+        self.nacionalidade_entry.insert(0, dados["Nacionalidade"])
+
+        self.estadocivil_entry.set(dados["Estado Civil"])
+
+        self.rg_entry.delete(0, tk.END)
+        self.rg_entry.insert(0, dados["RG"])
+
+        self.orgao_entry.delete(0, tk.END)
+        self.orgao_entry.insert(0, dados["Órgão Expedidor"])
+
+        self.uf_entry.delete(0, tk.END)
+        self.uf_entry.insert(0, dados["UF"])
+
+        self.endereco_entry.delete(0, tk.END)
+        self.endereco_entry.insert(0, dados["Endereço"])
+    
     def centralizar_janela(self):
         self.janela.update_idletasks()  
         largura = janela.winfo_width()
@@ -116,6 +161,17 @@ class Interface_App:
 
             self.uf_entry = tk.Entry(rg_frame, width=3)
             self.uf_entry.pack(side="left", padx=(4, 0))
+
+            historico_frame = tk.Frame(self.janela_estadual)
+            historico_frame.grid(row=11, column=1, sticky="w")
+
+            tk.Label(self.janela_estadual, text="Histórico").grid(row=11, column=0, sticky="w")
+
+            self.historico_box = ttk.Combobox(historico_frame, width=32, state="readonly")
+            self.historico_box.pack(side="left")
+            self.historico_box.bind("<<ComboboxSelected>>", self.carregar_pessoa_selecionada)
+
+            self.atualizar_lista_historico()
 
             emitir_frame = tk.Frame(self.janela_estadual)
             emitir_frame.grid(row=12, column=1, sticky="w")
