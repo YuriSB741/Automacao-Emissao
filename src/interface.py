@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinter import messagebox
 from tkinter import ttk
 from emissao_estadual import Emissao
 
@@ -82,11 +81,11 @@ class Interface_App:
     
     def centralizar_janela(self):
         self.janela.update_idletasks()  
-        largura = janela.winfo_width()
-        altura = janela.winfo_height()
-        x = (janela.winfo_screenwidth() // 2) - (largura // 2)
-        y = (janela.winfo_screenheight() // 2) - (altura // 2)
-        janela.geometry(f"+{x}+{y}")
+        largura = self.janela.winfo_width()
+        altura = self.janela.winfo_height()
+        x = (self.janela.winfo_screenwidth() // 2) - (largura // 2)
+        y = (self.janela.winfo_screenheight() // 2) - (altura // 2)
+        self.janela.geometry(f"+{x}+{y}")
 
     def estadual_info(self):
         if self.janela_estadual is None or not self.janela_estadual.winfo_exists():

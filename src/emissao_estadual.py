@@ -6,7 +6,6 @@ from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-import tkinter as tk
 from tkinter import messagebox
 from tkinter import filedialog
 
@@ -43,18 +42,30 @@ class Emissao:
             "UF" : self.uf,
             "Endereço": self.endereco
         }
+        historico = self.carregar_historico()
+        pessoa_existente = None
+        for pessoa in historico:
+            if pessoa.get("CPF") == self.cpf:
+                pessoa_existente = pessoa
+                break
+
+        if pessoa_existente:
+            pessoa_existente.update(dados)
+        else:
+            historico.append(dados)
+
         with open(self.ARQUIVO_JSON, "w", encoding="utf-8") as f:
-            json.dump(dados, f, ensure_ascii=False, indent=4)
+            json.dump(historico, f, ensure_ascii=False, indent=4)
 
     def buscar_pessoa(self):
         historico = self.carregar_historico()
         for pessoa in historico:
-            if pessoa.get("cpf") == self.cpf:
+            if pessoa.get("CPF") == self.cpf:
                 return pessoa
         return None
 
     def selecionar_pasta(self):
-       self.caminho = filedialog.askdirectory(title="Seleciona uma pasta", parent=self.main_window)
+        self.caminho = filedialog.askdirectory(title="Selecione uma pasta", parent=self.main_window)
 
     def verificacao_campos(self):
         self.campos = {
@@ -74,12 +85,14 @@ class Emissao:
         self.faltando = [campo for campo, valor in self.campos.items() if not valor.strip()]
         if self.faltando:
             messagebox.showerror("Campos Obrigatórios", f"Preencha os campos faltantes: {', '.join(self.faltando)}", parent=self.main_window)
-            return
+            return False
         self.salvar_json()
         self.selecionar_pasta()
+        return bool(self.caminho)
 
     def emitir_estadual(self, iapp, main_window):
         self.main_window = main_window
+        self.caminho = ""
 
         self.nome = iapp.nome_entry.get().upper()
         self.sexo = iapp.sexo_box.get()
@@ -94,9 +107,7 @@ class Emissao:
         self.uf = iapp.uf_entry.get().upper()
         self.endereco = iapp.endereco_entry.get().upper()
         
-        self.verificacao_campos()
-
-        if not self.caminho:
+        if not self.verificacao_campos():
             return
 
         download_dir = self.caminho
@@ -113,53 +124,55 @@ class Emissao:
         chrome_options.add_experimental_option("prefs", prefs)
         
         driver = webdriver.Chrome(options=chrome_options)
-        driver.get("https://www.tjrs.jus.br/novo/processos-e-servicos/servicos-processuais/emissao-de-antecedentes-e-certidoes/")
+        try:
+            driver.get("https://www.tjrs.jus.br/novo/processos-e-servicos/servicos-processuais/emissao-de-antecedentes-e-certidoes/")
 
-        iframe = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.TAG_NAME, "iframe"))
-            )
-        driver.switch_to.frame(iframe)
+            iframe = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.TAG_NAME, "iframe"))
+                )
+            driver.switch_to.frame(iframe)
 
-        select_element = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, "tipoDocumento"))
-            )
-        select = Select(select_element)
-        select.select_by_value("3")
+            select_element = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.ID, "tipoDocumento"))
+                )
+            select = Select(select_element)
+            select.select_by_value("3")
 
-        driver.find_element(By.XPATH, "/html/body/div[1]/form/div[4]/input").send_keys(self.nome)
-        
-        if self.sexo == "Feminino":    
-            select_entry_sexo = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/form/div[5]/select")))
-            select = Select(select_entry_sexo)
-            select.select_by_value("F")
-       
-        driver.find_element(By.XPATH, "/html/body/div[1]/form/div[6]/input").send_keys(self.cpf)
-        
-        driver.find_element(By.XPATH, "/html/body/div[1]/form/div[8]/input").send_keys(self.mae)
-        
-        driver.find_element(By.XPATH, "/html/body/div[1]/form/div[9]/input").send_keys(self.pai)
-        
-        driver.find_element(By.XPATH, "/html/body/div[1]/form/div[10]/input").send_keys(self.nascimento)
-        
-        nacionalidade_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/form/div[11]/select")))
-        select_nac = Select(nacionalidade_element)
-        select_nac.select_by_visible_text(self.nacionalidade)
-        
-        estadocivil_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "estadoCivil")))
-        select_est = Select(estadocivil_element)
-        select_est.select_by_visible_text(self.estadocivil)
-        
-        driver.find_element(By.ID, "rg").send_keys(self.rg)
-        
-        driver.find_element(By.ID, "orgaoExpedidor").send_keys(self.orgao_expedidor)
-        
-        uf_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/form/div[13]/select")))
-        select_uf = Select(uf_element)
-        select_uf.select_by_visible_text(self.uf)
-        
-        driver.find_element(By.ID, "endereco").send_keys(self.endereco)
-        
-        driver.find_element(By.XPATH, "/html/body/div[1]/form/div[15]/input").click()
+            driver.find_element(By.XPATH, "/html/body/div[1]/form/div[4]/input").send_keys(self.nome)
+            
+            if self.sexo == "Feminino":    
+                select_entry_sexo = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/form/div[5]/select")))
+                select = Select(select_entry_sexo)
+                select.select_by_value("F")
+           
+            driver.find_element(By.XPATH, "/html/body/div[1]/form/div[6]/input").send_keys(self.cpf)
+            
+            driver.find_element(By.XPATH, "/html/body/div[1]/form/div[8]/input").send_keys(self.mae)
+            
+            driver.find_element(By.XPATH, "/html/body/div[1]/form/div[9]/input").send_keys(self.pai)
+            
+            driver.find_element(By.XPATH, "/html/body/div[1]/form/div[10]/input").send_keys(self.nascimento)
+            
+            nacionalidade_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/form/div[11]/select")))
+            select_nac = Select(nacionalidade_element)
+            select_nac.select_by_visible_text(self.nacionalidade)
+            
+            estadocivil_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "estadoCivil")))
+            select_est = Select(estadocivil_element)
+            select_est.select_by_visible_text(self.estadocivil)
+            
+            driver.find_element(By.ID, "rg").send_keys(self.rg)
+            
+            driver.find_element(By.ID, "orgaoExpedidor").send_keys(self.orgao_expedidor)
+            
+            uf_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/form/div[13]/select")))
+            select_uf = Select(uf_element)
+            select_uf.select_by_visible_text(self.uf)
+            
+            driver.find_element(By.ID, "endereco").send_keys(self.endereco)
+            
+            driver.find_element(By.XPATH, "/html/body/div[1]/form/div[15]/input").click()
 
-        time.sleep(2)
-        driver.quit()
+            time.sleep(2)
+        finally:
+            driver.quit()
