@@ -6,6 +6,11 @@ from emissao_estadual import Emissao
 class Interface_App:
     def __init__(self, janela, janela_estadual):
         self.emissao = Emissao()
+        self.tipos_certidoes = [
+            "Certidão Judicial Cível",
+            "Certidão Judicial Criminal",
+            "Certidão Judicial para Fins Eleitorais"
+        ]
         self.generos = [
             "Masculino", 
             "Feminino"
@@ -184,12 +189,47 @@ class Interface_App:
             self.janela_federal = tk.Toplevel(self.janela)
             self.janela_federal.resizable(False, False)
             self.janela_federal.title("Certidão Cível Federal")
-            self.janela_federal.geometry("400x500")
+            self.janela_federal.geometry("400x300")
 
             x_principal = self.janela.winfo_x()
             y_principal = self.janela.winfo_y()
 
             self.janela_federal.geometry(f"+{x_principal + 50}+{y_principal + 50}")
+
+            for i in range(4):
+                self.janela_federal.columnconfigure(i, weight=1)
+
+            for i in range(10):
+                self.janela_federal.rowconfigure(i, weight=1)
+
+            campos = ["CPF:", "Nascimento:"]
+            for i, campo in enumerate(campos):
+                tk.Label(self.janela_federal, text=campo).grid(row=2+i, column=0, sticky="w")
+
+            self.certidao_box = ttk.Combobox(self.janela_federal, width=32, values=self.tipos_certidoes ,state="readonly")
+            self.certidao_box.grid(row=0, column=1, sticky="w")
+            self.certidao_box.set(self.tipos_certidoes[0])
+
+            self.cpf2_entry = tk.Entry(self.janela_federal, width=35)
+            self.cpf2_entry.grid(row=2, column=1, sticky="w")
+
+            self.nasc2_entry = tk.Entry(self.janela_federal, width=35)
+            self.nasc2_entry.grid(row=3, column=1, sticky="w")
+
+            historico_frame = tk.Frame(self.janela_federal)
+            historico_frame.grid(row=6, column=1, sticky="w")
+
+            tk.Label(self.janela_federal, text="Histórico").grid(row=6, column=0, sticky="w")
+
+            self.historico_box2 = ttk.Combobox(historico_frame, width=32, state="readonly")
+            self.historico_box2.pack(side="left")
+            # self.historico_box2.bind("<<ComboboxSelected>>", self.carregar_pessoa_selecionada)
+
+            emitir_frame = tk.Frame(self.janela_federal)
+            emitir_frame.grid(row=8, column=1, sticky="w")
+
+            botao_emitir_federal = tk.Button(emitir_frame, text="Emitir Documento", font=("Verdana", 11), borderwidth=3)
+            botao_emitir_federal.pack(padx=20)
 
 janela = tk.Tk()
 janela_estadual = None
