@@ -122,3 +122,7 @@ Exemplo do formato:
 - A automação depende da estrutura atual do site do TJRS. Se o site mudar, alguns seletores podem precisar de ajuste.
 - Use apenas dados corretos e com finalidade legítima.
 - O projeto é um estudo prático de automação, interface gráfica e organização de dados locais.
+
+## Licença
+
+Este projeto está licenciado sob a licença MIT. Consulte o arquivo `LICENSE` para mais detalhes.
