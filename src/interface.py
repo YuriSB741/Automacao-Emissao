@@ -1,10 +1,12 @@
 import tkinter as tk
 from tkinter import ttk
 from emissao_estadual import Emissao
+from emissao_federal import Emissao_federal
 
 class Interface_App:
-    def __init__(self, janela, janela_estadual):
+    def __init__(self, janela, janela_estadual, janela_federal):
         self.emissao = Emissao()
+        self.emissao_f = Emissao_federal()
         self.tipos_certidoes = [
             "Certidão Judicial Cível",
             "Certidão Judicial Criminal",
@@ -29,7 +31,7 @@ class Interface_App:
             ]
         self.janela = janela
         self.janela_estadual = janela_estadual
-        self.janela_federal = None
+        self.janela_federal = janela_federal
         self.janela.title("Emissor de Certidões")
         self.janela.geometry("300x200")
         self.janela.resizable(False, False)
@@ -227,12 +229,13 @@ class Interface_App:
             emitir_frame = tk.Frame(self.janela_federal)
             emitir_frame.grid(row=8, column=1, sticky="w")
 
-            botao_emitir_federal = tk.Button(emitir_frame, text="Emitir Documento", font=("Verdana", 11), borderwidth=3)
+            botao_emitir_federal = tk.Button(emitir_frame, text="Emitir Documento", font=("Verdana", 11), borderwidth=3, command=lambda: self.emissao_f.emitir_federal(self, self.janela_federal))
             botao_emitir_federal.pack(padx=20)
 
 janela = tk.Tk()
 janela_estadual = None
-app = Interface_App(janela, janela_estadual)
+janela_federal = None
+app = Interface_App(janela, janela_estadual, janela_federal)
 
 certidao_estadual_botao = tk.Button(janela, text="Estadual", font=("Verdana", 11), borderwidth=3, command=app.estadual_info)
 certidao_estadual_botao.pack(pady=30)
