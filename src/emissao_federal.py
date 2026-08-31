@@ -10,10 +10,8 @@ from tkinter import messagebox
 from tkinter import filedialog
 
 class Emissao_federal:
-
-
     def verificacao_campos(self):
-        campos = {
+        self.campos = {
             "CPF": self.cpf,
             "Nascimento": self.nascimento
         }
@@ -21,14 +19,54 @@ class Emissao_federal:
         if self.faltando:
             messagebox.showerror("Campos Obrigatórios", f"Preencha os campos faltantes: {', '.join(self.faltando)}", parent=self.main_window)
             return False
+        self.selecionar_pasta()
+        return bool(self.caminho)
+        
+    def selecionar_pasta(self):
+        self.caminho = filedialog.askdirectory(title="Selecione uma pasta", parent=self.main_window)
 
     def emitir_federal(self, iapp, main_window):
         self.main_window = main_window
+        self.caminho = ""
 
         self.cpf = iapp.cpf2_entry.get()
         self.nascimento = iapp.nasc2_entry.get()
+        self.tipo_certidao = iapp.certidao_box.get()
 
         if not self.verificacao_campos():
             return
+
+        download_dir = self.caminho
+        os.makedirs(download_dir, exist_ok=True)
+
+        chrome_options = Options()
+        prefs = {
+            "download.default_directory": download_dir,
+            "download.prompt_for_download": False,
+            "download.directory_upgrade": True,
+            "plugins.always_open_pdf_externally": True,
+            "safebrowsing.enabled": True
+        }
+        chrome_options.add_experimental_option("prefs", prefs)
+
+        driver = webdriver.Chrome(options=chrome_options)
+        try:
+            driver.get("https://www2.trf4.jus.br/trf4/processos/certidao/index.php")
+
+            driver.find_element(By.XPATH, "/html/body/div[1]/section/div[7]/div/form/div/div[1]/input").send_keys(self.cpf)
+
+            driver.find_element(By.XPATH, "/html/body/div[1]/section/div[7]/div/form/div/div[2]/input").send_keys(self.nascimento)
+
+            if self.tipo_certidao == iapp.tipos_certidoes[0]:
+                driver.find_element(By.XPATH, "/html/body/div[1]/section/div[7]/div/form/fieldset/b/input[1]").click()
+            elif self.tipo_certidao == iapp.tipos_certidoes[1]:
+                driver.find_element(By.XPATH, "/html/body/div[1]/section/div[7]/div/form/fieldset/b/input[2]").click()
+            elif self.tipo_certidao == iapp.tipos_certidoes[2]:
+                driver.find_element(By.XPATH, "/html/body/div[1]/section/div[7]/div/form/fieldset/b/input[3]").click()
+
+            time.sleep(2)
+        finally:
+            driver.quit()
+
 
          
