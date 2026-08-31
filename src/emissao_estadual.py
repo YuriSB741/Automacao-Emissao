@@ -8,6 +8,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from tkinter import messagebox
 from tkinter import filedialog
+import tkinter as tk
 
 class Emissao:
     ARQUIVO_JSON = os.path.join(os.path.dirname(__file__), "historico_certidoes.json")
@@ -120,6 +121,7 @@ class Emissao:
         return bool(self.caminho)
 
     def emitir_estadual(self, iapp, main_window):
+        iapp.botao_emitir_estadual.config(state=tk.DISABLED)
         self.main_window = main_window
         self.caminho = ""
 
@@ -137,6 +139,7 @@ class Emissao:
         self.endereco = iapp.endereco_entry.get().upper()
         
         if not self.verificacao_campos():
+            iapp.botao_emitir_estadual.config(state=tk.NORMAL)
             return
 
         download_dir = self.caminho
@@ -207,6 +210,6 @@ class Emissao:
 
             arquivo_pdf = self.aguardar_download(download_dir, arquivos_antes)
             print(f"PDF baixado com sucesso: {arquivo_pdf}")
-
         finally:
             driver.quit()
+            iapp.botao_emitir_estadual.config(state=tk.NORMAL)

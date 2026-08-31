@@ -8,8 +8,39 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from tkinter import messagebox
 from tkinter import filedialog
+import tkinter as tk
 
 class Emissao_federal:
+
+    @staticmethod
+    def aguardar_download(download_dir, arquivos_antes, timeout=60):
+        limite = time.time() + timeout
+
+        while time.time() < limite:
+            arquivos_atuais = set(os.listdir(download_dir))
+            arquivos_novos = arquivos_atuais - arquivos_antes
+            download_em_andamento = any(
+                nome.endswith((".crdownload", ".tmp", ".part"))
+                for nome in arquivos_atuais
+            )
+            pdfs = [
+                os.path.join(download_dir, nome)
+                for nome in arquivos_novos
+                if nome.lower().endswith(".pdf")
+            ]
+
+            if pdfs and not download_em_andamento:
+                arquivo_pdf = max(pdfs, key=os.path.getmtime)
+                tamanho = os.path.getsize(arquivo_pdf)
+                time.sleep(1)
+
+                if tamanho > 0 and os.path.getsize(arquivo_pdf) == tamanho:
+                    return arquivo_pdf
+
+            time.sleep(0.5)
+
+        raise TimeoutError("O PDF não foi baixado dentro do tempo esperado.")   
+
     def verificacao_campos(self):
         self.campos = {
             "CPF": self.cpf,
@@ -26,6 +57,7 @@ class Emissao_federal:
         self.caminho = filedialog.askdirectory(title="Selecione uma pasta", parent=self.main_window)
 
     def emitir_federal(self, iapp, main_window):
+        iapp.botao_emitir_federal.config(state=tk.DISABLED)
         self.main_window = main_window
         self.caminho = ""
 
@@ -34,10 +66,12 @@ class Emissao_federal:
         self.tipo_certidao = iapp.certidao_box.get()
 
         if not self.verificacao_campos():
+            iapp.botao_emitir_federal.config(state=tk.NORMAL)
             return
 
         download_dir = self.caminho
         os.makedirs(download_dir, exist_ok=True)
+        arquivos_antes = set(os.listdir(download_dir))
 
         chrome_options = Options()
         prefs = {
@@ -64,9 +98,11 @@ class Emissao_federal:
             elif self.tipo_certidao == iapp.tipos_certidoes[2]:
                 driver.find_element(By.XPATH, "/html/body/div[1]/section/div[7]/div/form/fieldset/b/input[3]").click()
 
-            time.sleep(2)
+            arquivo_pdf = self.aguardar_download(download_dir, arquivos_antes)
+            print(f"PDF baixado com sucesso: {arquivo_pdf}")
         finally:
             driver.quit()
+            iapp.botao_emitir_federal.config(state=tk.NORMAL)
 
 
          

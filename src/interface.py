@@ -182,8 +182,8 @@ class Interface_App:
             emitir_frame = tk.Frame(self.janela_estadual)
             emitir_frame.grid(row=12, column=1, sticky="w")
 
-            botao_emitir_estadual = tk.Button(emitir_frame, text="Emitir Documento", font=("Verdana", 11), borderwidth=3, command=lambda: self.emissao.emitir_estadual(self, self.janela_estadual))
-            botao_emitir_estadual.pack(padx=20)
+            self.botao_emitir_estadual = tk.Button(emitir_frame, text="Emitir Documento", font=("Verdana", 11), borderwidth=3, command=lambda: self.emissao.emitir_estadual(self, self.janela_estadual))
+            self.botao_emitir_estadual.pack(padx=20)
 
     def federal_info(self):
         if self.janela_federal is None or not self.janela_federal.winfo_exists():
@@ -229,8 +229,8 @@ class Interface_App:
             emitir_frame = tk.Frame(self.janela_federal)
             emitir_frame.grid(row=8, column=1, sticky="w")
 
-            botao_emitir_federal = tk.Button(emitir_frame, text="Emitir Documento", font=("Verdana", 11), borderwidth=3, command=lambda: self.emissao_f.emitir_federal(self, self.janela_federal))
-            botao_emitir_federal.pack(padx=20)
+            self.botao_emitir_federal = tk.Button(emitir_frame, text="Emitir Documento", font=("Verdana", 11), borderwidth=3, command=lambda: self.emissao_f.emitir_federal(self, self.janela_federal))
+            self.botao_emitir_federal.pack(padx=20)
 
 janela = tk.Tk()
 janela_estadual = None
