@@ -12,6 +12,35 @@ from tkinter import filedialog
 class Emissao:
     ARQUIVO_JSON = os.path.join(os.path.dirname(__file__), "historico_certidoes.json")
 
+    @staticmethod
+    def aguardar_download(download_dir, arquivos_antes, timeout=60):
+        limite = time.time() + timeout
+
+        while time.time() < limite:
+            arquivos_atuais = set(os.listdir(download_dir))
+            arquivos_novos = arquivos_atuais - arquivos_antes
+            download_em_andamento = any(
+                nome.endswith((".crdownload", ".tmp", ".part"))
+                for nome in arquivos_atuais
+            )
+            pdfs = [
+                os.path.join(download_dir, nome)
+                for nome in arquivos_novos
+                if nome.lower().endswith(".pdf")
+            ]
+
+            if pdfs and not download_em_andamento:
+                arquivo_pdf = max(pdfs, key=os.path.getmtime)
+                tamanho = os.path.getsize(arquivo_pdf)
+                time.sleep(1)
+
+                if tamanho > 0 and os.path.getsize(arquivo_pdf) == tamanho:
+                    return arquivo_pdf
+
+            time.sleep(0.5)
+
+        raise TimeoutError("O PDF não foi baixado dentro do tempo esperado.")
+
     def carregar_historico(self):
         if os.path.exists(self.ARQUIVO_JSON):
             with open(self.ARQUIVO_JSON, "r", encoding="utf-8") as f:
@@ -112,16 +141,19 @@ class Emissao:
 
         download_dir = self.caminho
         os.makedirs(download_dir, exist_ok=True)
+        arquivos_antes = set(os.listdir(download_dir))
 
         chrome_options = Options()
         prefs = {
-            "download.default_directory": download_dir,
+            "download.default_directory": os.path.abspath(download_dir),
             "download.prompt_for_download": False,
             "download.directory_upgrade": True,
             "plugins.always_open_pdf_externally": True,
-            "safebrowsing.enabled": True
+            "safebrowsing.enabled": True,
+            "safeberowsing.disable_download_protection": True
         }
         chrome_options.add_experimental_option("prefs", prefs)
+        chrome_options.add_argument("--disable_download_protection")
         
         driver = webdriver.Chrome(options=chrome_options)
         try:
@@ -173,6 +205,8 @@ class Emissao:
             
             driver.find_element(By.XPATH, "/html/body/div[1]/form/div[15]/input").click()
 
-            time.sleep(2)
+            arquivo_pdf = self.aguardar_download(download_dir, arquivos_antes)
+            print(f"PDF baixado com sucesso: {arquivo_pdf}")
+
         finally:
             driver.quit()
