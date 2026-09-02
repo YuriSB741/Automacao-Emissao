@@ -5,15 +5,17 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.chrome.options import Options
 from tkinter import messagebox
 from tkinter import filedialog
 import tkinter as tk
 
 class Emissao_federal:
+    ARQUIVO_JSON = os.path.join(os.path.dirname(__file__), "historico_certidoes.json")
 
     @staticmethod
-    def aguardar_download(download_dir, arquivos_antes, timeout=60):
+    def aguardar_download(download_dir, arquivos_antes, timeout=240):
         limite = time.time() + timeout
 
         while time.time() < limite:
@@ -41,6 +43,21 @@ class Emissao_federal:
 
         raise TimeoutError("O PDF não foi baixado dentro do tempo esperado.")   
 
+    def carregar_historico(self):
+        if os.path.exists(self.ARQUIVO_JSON):
+            with open(self.ARQUIVO_JSON, "r", encoding="utf-8") as f:
+                try:
+                    dados = json.load(f)
+                except json.JSONDecodeError:
+                    return []
+
+                if isinstance(dados, dict):
+                    return [dados]
+                if isinstance(dados, list):
+                    return dados
+                return []
+        return []
+
     def verificacao_campos(self):
         self.campos = {
             "CPF": self.cpf,
@@ -52,6 +69,13 @@ class Emissao_federal:
             return False
         self.selecionar_pasta()
         return bool(self.caminho)
+
+    def buscar_pessoa(self):
+        historico = self.carregar_historico()
+        for pessoa in historico:
+            if pessoa.get("CPF") == self.cpf:
+                return pessoa
+        return None
         
     def selecionar_pasta(self):
         self.caminho = filedialog.askdirectory(title="Selecione uma pasta", parent=self.main_window)
@@ -75,7 +99,7 @@ class Emissao_federal:
 
         chrome_options = Options()
         prefs = {
-            "download.default_directory": download_dir,
+            "download.default_directory": os.path.abspath(download_dir),
             "download.prompt_for_download": False,
             "download.directory_upgrade": True,
             "plugins.always_open_pdf_externally": True,
@@ -83,7 +107,15 @@ class Emissao_federal:
         }
         chrome_options.add_experimental_option("prefs", prefs)
 
-        driver = webdriver.Chrome(options=chrome_options)
+      
+        try:
+            driver = webdriver.Chrome(options=chrome_options)
+        except WebDriverException as e:
+            print(f"Erro no WebDriver {e.msg}")
+            messagebox.showerror("Erro", "Não foi possível iniciar o navegador.", parent=self.main_window)
+            iapp.botao_emitir_federal.config(state=tk.NORMAL)
+            return 
+        
         try:
             driver.get("https://www2.trf4.jus.br/trf4/processos/certidao/index.php")
 
@@ -99,7 +131,11 @@ class Emissao_federal:
                 driver.find_element(By.XPATH, "/html/body/div[1]/section/div[7]/div/form/fieldset/b/input[3]").click()
 
             arquivo_pdf = self.aguardar_download(download_dir, arquivos_antes)
-            print(f"PDF baixado com sucesso: {arquivo_pdf}")
+            print(f"PDF baixado com sucesso: {arquivo_pdf}")            
+        except TimeoutError:
+            messagebox.showerror("Tempo esgotado", "O PDF não foi baixado a tempo. Tente novamente.", parent=self.main_window)
+        except WebDriverException as e:
+            messagebox.showerror("Erro ao preencher o formulário", f"Não foi possível concluir a emissão: \n{e.msg}", parent=self.main_window)
         finally:
             driver.quit()
             iapp.botao_emitir_federal.config(state=tk.NORMAL)

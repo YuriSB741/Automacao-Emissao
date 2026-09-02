@@ -2,12 +2,13 @@
 
 Aplicação desktop em Python para auxiliar a emissão de certidões judiciais, com interface gráfica em Tkinter e automação web usando Selenium.
 
-No estado atual, a automação implementada é a emissão de certidão estadual no site do TJRS. A tela de certidão federal já existe na interface, mas ainda está em desenvolvimento.
+No estado atual, a automação implementada é a emissão de certidão estadual no site do TJRS. A tela de certidão federal já existe na interface, mas a emissão federal é uma semi automação: o sistema preenche os dados e inicia o fluxo, porém o site exige um captcha que precisa ser resolvido manualmente pelo usuário antes da conclusão da emissão.
 
 ## Funcionalidades
 
 - Interface gráfica simples para preenchimento dos dados da pessoa consultada
 - Automação do navegador para preencher o formulário de certidão estadual do TJRS
+- Semi automação para a certidão federal, com intervenção manual no captcha
 - Seleção da pasta de destino para download do documento
 - Histórico local em JSON para reutilizar dados já preenchidos
 - Tela inicial para separar fluxo estadual e federal
@@ -15,7 +16,7 @@ No estado atual, a automação implementada é a emissão de certidão estadual 
 ## Status do Projeto
 
 - Certidão estadual: implementada
-- Certidão federal: tela criada, automação ainda não implementada
+- Certidão federal: semi automatizada, depende de captcha resolvido manualmente
 - Histórico: salva e atualiza pessoas por CPF em arquivo local
 
 ## Tecnologias

@@ -1,3 +1,4 @@
-from interface import janela
+import interface
 
-janela.mainloop()
+if __name__ == "__main__":
+    interface.janela.mainloop()

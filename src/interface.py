@@ -41,6 +41,15 @@ class Interface_App:
         self.mapa_historico = {f"{p['Nome']} - {p['CPF']}": p for p in historico}
         self.historico_box["values"] = list(self.mapa_historico.keys())
 
+    def atualizar_lista_historico_federal(self):
+        historico = self.emissao_f.carregar_historico()
+        self.mapa_historico_federal = {
+            f"{p.get('Nome', 'Sem nome')} - {p.get('CPF', '')}": p
+            for p in historico
+            if p.get("CPF") and p.get("Nascimento")
+        }
+        self.historico_box2["values"] = list(self.mapa_historico_federal.keys())
+
     def carregar_pessoa_selecionada(self, event=None):
         chave = self.historico_box.get()
         dados = self.mapa_historico.get(chave)
@@ -80,6 +89,18 @@ class Interface_App:
 
         self.endereco_entry.delete(0, tk.END)
         self.endereco_entry.insert(0, dados["Endereço"])
+
+    def carregar_pessoa_federal(self, event=None):
+        chave = self.historico_box2.get()
+        dados = self.mapa_historico_federal.get(chave)
+        if not dados:
+            return
+
+        self.cpf2_entry.delete(0, tk.END)
+        self.cpf2_entry.insert(0, dados.get("CPF", ""))
+
+        self.nasc2_entry.delete(0, tk.END)
+        self.nasc2_entry.insert(0, dados.get("Nascimento", ""))
     
     def centralizar_janela(self):
         self.janela.update_idletasks()  
@@ -90,6 +111,11 @@ class Interface_App:
         self.janela.geometry(f"+{x}+{y}")
 
     def estadual_info(self):
+        if self.janela_estadual is not None and self.janela_estadual.winfo_exists():
+            self.janela_estadual.lift()
+            self.janela_estadual.focus_force()
+            return
+
         if self.janela_estadual is None or not self.janela_estadual.winfo_exists():
             self.janela_estadual = tk.Toplevel(self.janela)
             self.janela_estadual.resizable(False, False)
@@ -186,6 +212,11 @@ class Interface_App:
             self.botao_emitir_estadual.pack(padx=20)
 
     def federal_info(self):
+        if self.janela_federal is not None and self.janela_federal.winfo_exists():
+            self.janela_federal.lift()
+            self.janela_federal.focus_force()
+            return
+
         if self.janela_federal is None or not self.janela_federal.winfo_exists():
             self.janela_federal = tk.Toplevel(self.janela)
             self.janela_federal.resizable(False, False)
@@ -224,7 +255,9 @@ class Interface_App:
 
             self.historico_box2 = ttk.Combobox(historico_frame, width=32, state="readonly")
             self.historico_box2.pack(side="left")
-            # self.historico_box2.bind("<<ComboboxSelected>>", self.carregar_pessoa_selecionada)
+            self.historico_box2.bind("<<ComboboxSelected>>", self.carregar_pessoa_federal)
+
+            self.atualizar_lista_historico_federal()
 
             emitir_frame = tk.Frame(self.janela_federal)
             emitir_frame.grid(row=8, column=1, sticky="w")

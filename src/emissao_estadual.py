@@ -4,6 +4,7 @@ import time
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from tkinter import messagebox
@@ -116,7 +117,6 @@ class Emissao:
         if self.faltando:
             messagebox.showerror("Campos Obrigatórios", f"Preencha os campos faltantes: {', '.join(self.faltando)}", parent=self.main_window)
             return False
-        self.salvar_json()
         self.selecionar_pasta()
         return bool(self.caminho)
 
@@ -153,12 +153,19 @@ class Emissao:
             "download.directory_upgrade": True,
             "plugins.always_open_pdf_externally": True,
             "safebrowsing.enabled": True,
-            "safeberowsing.disable_download_protection": True
+            "safebrowsing.disable_download_protection": True
         }
         chrome_options.add_experimental_option("prefs", prefs)
         chrome_options.add_argument("--disable_download_protection")
-        
-        driver = webdriver.Chrome(options=chrome_options)
+
+        try:
+            driver = webdriver.Chrome(options=chrome_options)
+        except WebDriverException as e:
+            print(f"Erro no WebDriver {e.msg}")
+            messagebox.showerror("Erro", "Não foi possível iniciar o navegador.", parent=self.main_window)
+            iapp.botao_emitir_estadual.config(state=tk.NORMAL)
+            return 
+               
         try:
             driver.get("https://www.tjrs.jus.br/novo/processos-e-servicos/servicos-processuais/emissao-de-antecedentes-e-certidoes/")
 
@@ -210,6 +217,13 @@ class Emissao:
 
             arquivo_pdf = self.aguardar_download(download_dir, arquivos_antes)
             print(f"PDF baixado com sucesso: {arquivo_pdf}")
+            self.salvar_json()
+            
+        except TimeoutError:
+            messagebox.showerror("Tempo esgotado", "O PDF não foi baixado a tempo. Tente novamente.", parent=self.main_window)
+        except WebDriverException as e:
+            messagebox.showerror("Erro ao preencher o formulário", f"Não foi possível concluir a emissão:\n{e.msg}", parent=self.main_window)
+            
         finally:
             driver.quit()
             iapp.botao_emitir_estadual.config(state=tk.NORMAL)
