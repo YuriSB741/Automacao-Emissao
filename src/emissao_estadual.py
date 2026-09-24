@@ -15,6 +15,26 @@ class Emissao:
     ARQUIVO_JSON = os.path.join(os.path.dirname(__file__), "historico_certidoes.json")
 
     @staticmethod
+    def ocultar_barras_sobrepostas(driver):
+        driver.execute_script("""
+            document.querySelectorAll('.cli-bar-message, #cookie-law-info-bar, .cookie-law-info-bar')
+                .forEach(function(elemento) {
+                    elemento.style.display = 'none';
+                    elemento.style.visibility = 'hidden';
+                    elemento.style.pointerEvents = 'none';
+                });
+        """)
+
+    @staticmethod
+    def clicar_elemento(driver, elemento):
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", elemento)
+        WebDriverWait(driver, 10).until(lambda _: elemento.is_displayed() and elemento.is_enabled())
+        try:
+            elemento.click()
+        except WebDriverException:
+            driver.execute_script("arguments[0].click();", elemento)
+
+    @staticmethod
     def aguardar_download(download_dir, arquivos_antes, timeout=60):
         limite = time.time() + timeout
 
@@ -157,6 +177,7 @@ class Emissao:
         }
         chrome_options.add_experimental_option("prefs", prefs)
         chrome_options.add_argument("--disable_download_protection")
+        chrome_options.add_argument("--start-maximized")
 
         try:
             driver = webdriver.Chrome(options=chrome_options)
@@ -168,11 +189,12 @@ class Emissao:
                
         try:
             driver.get("https://www.tjrs.jus.br/novo/processos-e-servicos/servicos-processuais/emissao-de-antecedentes-e-certidoes/")
+            self.ocultar_barras_sobrepostas(driver)
 
-            iframe = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.TAG_NAME, "iframe"))
-                )
-            driver.switch_to.frame(iframe)
+            WebDriverWait(driver, 10).until(
+                EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR, "iframe[src*='/proc/alvara/']"))
+            )
+            self.ocultar_barras_sobrepostas(driver)
 
             select_element = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.ID, "tipoDocumento"))
@@ -213,7 +235,10 @@ class Emissao:
             
             driver.find_element(By.ID, "endereco").send_keys(self.endereco)
             
-            driver.find_element(By.XPATH, "/html/body/div[1]/form/div[15]/input").click()
+            botao_emitir = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/form/div[15]/input"))
+            )
+            self.clicar_elemento(driver, botao_emitir)
 
             arquivo_pdf = self.aguardar_download(download_dir, arquivos_antes)
             print(f"PDF baixado com sucesso: {arquivo_pdf}")
